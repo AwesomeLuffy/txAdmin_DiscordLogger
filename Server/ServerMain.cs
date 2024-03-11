@@ -16,7 +16,7 @@ namespace DiscordLoggerv2.Server
         
         public static bool DebugMode = true;
         
-        public static Dictionary<string, string> Config;
+        public static Dictionary<string, string> ConfigWebhook;
 
         public ServerMain()
         {
@@ -28,6 +28,7 @@ namespace DiscordLoggerv2.Server
                 return;
             }
 
+            // Register the events
             EventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(EventListener.OnPlayerConnecting);
             EventHandlers["playerDropped"] += new Action<Player, string>(EventListener.OnPlayerDropped);
             EventHandlers["txsv:logger:deathEvent"] += new Action<Player, string, string>(EventListener.OnPlayerDeath);
@@ -37,14 +38,19 @@ namespace DiscordLoggerv2.Server
             Debug.WriteLine("Hi from DiscordLoggerv2.Server!");
         }
 
+        
+        // This function Load the ConfigXml file to read the Webhook Urls
         private static bool LoadConfigFile()
         {
             try
             {
+                // To the the config file
                 var configXmlString = Function.Call<string>(Hash.LOAD_RESOURCE_FILE, "DiscordLoggerv2", "config.xml");
 
+                // The the file as an XmlDocument
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(configXmlString);
+                // Select the nodes inside the file with the name webhook to retrieve all webhook urls
                 XmlNodeList resources = doc.SelectNodes("DiscordLoggerConfig/webhook");
 
                 if (resources == null)
@@ -52,15 +58,17 @@ namespace DiscordLoggerv2.Server
                     return false;
                 }
 
-                Config = new Dictionary<string, string>();
+                ConfigWebhook = new Dictionary<string, string>();
 
+                // Retrieve all webhook urls and add them to the dictionary
+                // The key defined in the Xml is the key of the dictionnary
                 foreach (XmlNode node in resources)
                 {
                     if (node.Attributes == null || node.Attributes["name"] == null)
                     {
                         return false;
                     }
-                    Config.Add(node.Attributes["name"].Value, node.InnerText);
+                    ConfigWebhook.Add(node.Attributes["name"].Value, node.InnerText);
                 }
             }
             catch (Exception e)
