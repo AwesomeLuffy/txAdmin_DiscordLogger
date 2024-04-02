@@ -27,19 +27,25 @@ namespace DiscordLoggerv2.Server{
         public static void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason,
             object defferals){
             new Thread(() => {
-                string steamIdentifier = Utils.SearchPlayerIdentifiers(player, Utils.SteamIdentifier);
-                string discordId = Utils.SearchPlayerIdentifiers(player, Utils.DiscordIdentifier);
+                try{
+                    string steamIdentifier = Utils.SearchPlayerIdentifiers(player, Utils.SteamIdentifier);
+                    string discordId = Utils.SearchPlayerIdentifiers(player, Utils.DiscordIdentifier);
 
-                // EmbedBuilder that return an Embed object to send in the request
-                var embed = new EmbedBuilder()
-                    .WithTitle("Connexion")
-                    .WithDescription(Discord.GetFormattedDiscordMention(discordId) + " tente de se connecter !")
-                    .WithColor(Color.Green)
-                    .AddField("Nom Steam", player.Name, true)
-                    .AddField("Steam ID", steamIdentifier, true)
-                    .Build();
+                    // EmbedBuilder that return an Embed object to send in the request
+                    var embed = new EmbedBuilder()
+                        .WithTitle("Connexion")
+                        .WithDescription(Discord.GetFormattedDiscordMention(discordId) + " tente de se connecter !")
+                        .WithColor(Color.Green)
+                        .AddField("Nom Steam", player.Name, true)
+                        .AddField("Steam ID", steamIdentifier, true)
+                        .Build();
 
-                Discord.PerformWebhookRequest(embed, ServerMain.ConfigWebhook["Connect"]);
+                    Discord.PerformWebhookRequest(embed, ServerMain.ConfigWebhook["Connect"]);
+                }
+                catch(Exception e){
+                    Console.WriteLine("^2 Attention : Un Joueur s'est connecté mais il n'a pas été possible de récupérer son nom.");
+                }
+
             }).Start();
         }
 
@@ -50,17 +56,22 @@ namespace DiscordLoggerv2.Server{
         /// <param name="reason">Reason why the player left</param>
         public static void OnPlayerDropped([FromSource] Player player, string reason){
             new Thread(() => {
-                var embed = new EmbedBuilder()
-                    .WithTitle("Déconnexion")
-                    .WithDescription(
-                        Discord.GetFormattedDiscordMention(
-                            Utils.SearchPlayerIdentifiers(player, Utils.DiscordIdentifier)) +
-                        " s'est déconnecté !")
-                    .WithColor(Color.Red)
-                    .AddField("Raison", reason, true)
-                    .Build();
+                try{
+                    var embed = new EmbedBuilder()
+                        .WithTitle("Déconnexion")
+                        .WithDescription(
+                            Discord.GetFormattedDiscordMention(
+                                Utils.SearchPlayerIdentifiers(player, Utils.DiscordIdentifier)) +
+                            " s'est déconnecté !")
+                        .WithColor(Color.Red)
+                        .AddField("Raison", reason, true)
+                        .Build();
 
-                Discord.PerformWebhookRequest(embed, ServerMain.ConfigWebhook["Disconnect"]);
+                    Discord.PerformWebhookRequest(embed, ServerMain.ConfigWebhook["Disconnect"]);
+                }
+                catch (Exception e){
+                    Console.WriteLine("^2 Information : Un Joueur s'est déconnecté mais il n'a pas été possible de récupérer son nom.");
+                }
             }).Start();
         }
 
